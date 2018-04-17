@@ -7,14 +7,7 @@
 </head>
   <Body>
 
-<?php 
-
-echo " {$_POST['amount']}";
-echo " {$_POST['card_number']}";
-echo " {$_POST['security_code']}";
-echo " {$_POST['zip_code']}";
-
-
+<?php
 require 'vendor/autoload.php'; 
 use net\authorize\api\contract\v1 as AnetAPI;
 use net\authorize\api\controller as AnetController;
@@ -22,22 +15,22 @@ use net\authorize\api\controller as AnetController;
 define("AUTHORIZENET_LOG_FILE","phplog");
 
 // Common setup for API credentials  
-  $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();   
-  $merchantAuthentication->setName("YOUR_API_LOGIN_ID");   
-  $merchantAuthentication->setTransactionKey("YOUR_TRANSACTION_KEY");   
-  $refId = 'ref' . time();
+ $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+ $merchantAuthentication->setName(\Keys\Constants::MERCHANT_LOGIN_ID);
+ $merchantAuthentication->setTransactionKey(\Keys\Constants::MERCHANT_TRANSACTION_KEY);   
+ $refId = 'ref' . time();
 
 // Create the payment data for a credit card
   $creditCard = new AnetAPI\CreditCardType();
-  $creditCard->setCardNumber("4111111111111111" );  
-  $creditCard->setExpirationDate( "2038-12");
+  $creditCard->setCardNumber($_POST['CreditCardNumber']);  //$_POST['CreditCardNumber'] | Default = "4111111111111111"
+  $creditCard->setExpirationDate($_POST['ExpiryDate']); // $_POST['ExpiryDate'] | Default "2038-12"
   $paymentOne = new AnetAPI\PaymentType();
   $paymentOne->setCreditCard($creditCard);
 
 // Create a transaction
   $transactionRequestType = new AnetAPI\TransactionRequestType();
   $transactionRequestType->setTransactionType("authCaptureTransaction");   
-  $transactionRequestType->setAmount(151.51);
+  $transactionRequestType->setAmount($_POST['PaymentAmount']);
   $transactionRequestType->setPayment($paymentOne);
   $request = new AnetAPI\CreateTransactionRequest();
   $request->setMerchantAuthentication($merchantAuthentication);
@@ -51,8 +44,9 @@ if ($response != null)
   $tresponse = $response->getTransactionResponse();
   if (($tresponse != null) && ($tresponse->getResponseCode()=="1"))
   {
-    echo "Charge Credit Card AUTH CODE : " . $tresponse->getAuthCode() . "\n";
-    echo "Charge Credit Card TRANS ID  : " . $tresponse->getTransId() . "\n";
+	echo "<h4 class='alert-heading'>".$_POST['NameOnCard']."!!"."</h4>"." Your payment of $".$_POST['PaymentAmount']. " has been received. \n";  
+    echo "AUTH CODE : " . $tresponse->getAuthCode() . "\n";
+    echo "TRANS ID  : " . $tresponse->getTransId() . "\n";
   }
   else
   {
@@ -63,13 +57,9 @@ else
 {
   echo  "Charge Credit Card Null response returned";
 }
+?>
 
 
-  ?>
+
   </Body>
 </html>
-
-
-<?php
-
-?>
